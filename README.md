@@ -6,6 +6,7 @@ A command-line tool for interacting with the SYOJ (Sing Yin Online Judge) platfo
 
 - Login to SYOJ via API using the `syojctl login` command
 - Show problem details with the `syojctl show-problem` command
+- Submit solution code for problems with the `syojctl submit` command
 - Retrieve and store authentication credentials (Token and TokenId) in XDG standard directories
 - Accept username and password via command line flags or environment variables
 - Command-line interface built with Cobra
@@ -30,6 +31,12 @@ go run main.go login
 
 # Show problem details (requires login first)
 go run main.go show-problem I002
+
+# Submit solution code from a file
+go run main.go submit I001 -i solution.cpp
+
+# Submit solution code from standard input
+cat solution.cpp | go run main.go submit I001
 ```
 
 ### Building and running the executable
@@ -50,6 +57,12 @@ export SYOJ_PASSWORD=your-password
 
 # Show problem details (requires login first)
 ./syojctl show-problem I002
+
+# Submit solution code from a file
+./syojctl submit I001 -i solution.cpp
+
+# Submit solution code from standard input
+cat solution.cpp | ./syojctl submit I001
 ```
 
 The login command will:
@@ -61,6 +74,11 @@ The show-problem command will:
 2. Fetch the problem details from the SYOJ API
 3. Render the problem in a beautifully formatted way in your terminal
 
+The submit command will:
+1. Load the saved authentication credentials
+2. Read source code from a file or standard input
+3. Submit the code to SYOJ for evaluation
+
 ## Architecture
 
 - `main.go` - Main application entry point
@@ -68,6 +86,7 @@ The show-problem command will:
   - `root.go` - Root command definition
   - `login.go` - Login command implementation
   - `show_problem.go` - Show problem command implementation
+  - `submit.go` - Submit command implementation
 - `api/` - API client implementation
   - `client.go` - SYOJ API client
 - `credentials/` - Credentials management
@@ -87,6 +106,7 @@ The show-problem command will:
 
 - `POST https://syoj.org/api/login` - Authentication endpoint
 - `GET https://syoj.org/api/problems/{problem-id}` - Problem details endpoint
+- `POST https://syoj.org/api/submit` - Code submission endpoint
 
 ## Commands
 
@@ -94,5 +114,8 @@ The show-problem command will:
   - `-u, --username string` - Username for SYOJ login (defaults to SYOJ_USERNAME environment variable)
   - `-p, --password string` - Password for SYOJ login (defaults to SYOJ_PASSWORD environment variable)
 - `syojctl show-problem [problem-id]` - Show details of a specific problem
+- `syojctl submit [problem-id]` - Submit solution code for a problem
+  - `-i, --input string` - Input file containing source code (reads from stdin if not specified)
+  - `-l, --language string` - Programming language for submission
 - `syojctl help` - Help about any command
 - `syojctl completion` - Generate autocompletion scripts

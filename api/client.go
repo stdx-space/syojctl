@@ -42,19 +42,19 @@ type LoginResponse struct {
 
 // Problem represents a problem from SYOJ
 type Problem struct {
-	ID              string        `json:"id"`
-	Title           string        `json:"title"`
-	Description     string        `json:"description"`
-	Difficulty      string        `json:"difficulty"`
-	MemoryLimit     int           `json:"memoryLimit"`
-	TimeLimit       int           `json:"timeLimit"`
-	Notes           string        `json:"notes"`
-	Tags            []Tag         `json:"tags"`
-	AllowedLanguages []Language   `json:"allowedLanguages"`
-	Author          Author        `json:"author"`
+	ID              string          `json:"id"`
+	Title           string          `json:"title"`
+	Description     string          `json:"description"`
+	Difficulty      string          `json:"difficulty"`
+	MemoryLimit     int             `json:"memoryLimit"`
+	TimeLimit       int             `json:"timeLimit"`
+	Notes           string          `json:"notes"`
+	Tags            []Tag           `json:"tags"`
+	AllowedLanguages []Language     `json:"allowedLanguages"`
+	Author          Author          `json:"author"`
 	TestCases       []TestCaseGroup `json:"testCases"`
-	ProblemSection  []Section     `json:"ProblemSection"`
-	AllowSubmit     bool          `json:"allowSubmit"`
+	ProblemSection  []Section       `json:"ProblemSection"`
+	AllowSubmit     bool            `json:"allowSubmit"`
 }
 
 // Tag represents a problem tag
@@ -93,6 +93,18 @@ type Section struct {
 	Title   string `json:"title"`
 	Content string `json:"content"`
 	Order   int    `json:"order"`
+}
+
+// SubmitRequest represents the submission request payload
+type SubmitRequest struct {
+	Code      string `json:"code"`
+	Language  string `json:"language"`
+	ProblemId string `json:"problemId"`
+}
+
+// SubmitResponse represents the submission response
+type SubmitResponse struct {
+	Message string `json:"message"`
 }
 
 // NewClient creates a new SYOJ API client
@@ -272,4 +284,65 @@ func (c *Client) GetProblem(problemID string) (*Problem, error) {
 	}
 
 	return &problem, nil
+}
+
+// SubmitCode submits code to solve a problem
+func (c *Client) SubmitCode(code, language, problemID string) (*SubmitResponse, error) {
+	// Prepare the submission request
+	submitData := SubmitRequest{
+		Code:      code,
+		Language:  language,
+		ProblemId: problemID,
+	}
+
+	jsonData, err := json.Marshal(submitData)
+	if err != nil {
+		c.logger.Error("Failed to marshal submission data", "error", err)
+		return nil, err
+	}
+
+	// Create the request
+	req, err := http.NewRequest("POST", c.baseURL+"/api/submit", bytes.NewBuffer(jsonData))
+	if err != nil {
+		c.logger.Error("Failed to create request", "error", err)
+		return nil, err
+	}
+
+	// Set headers
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "syojctl/1.0")
+
+	// Perform the request
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		c.logger.Error("Failed to make request", "error", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		c.logger.Error("Failed to read response body", "error", err)
+		return nil, err
+	}
+
+	// Log response details
+	c.logger.Info("Received submission response", "status", resp.StatusCode, "body", string(body))
+
+	// Parse the response
+	var submitResp SubmitResponse
+	if err := json.Unmarshal(body, &submitResp); err != nil {
+		c.logger.Error("Failed to parse response", "error", err)
+		return nil, err
+	}
+
+	// Check if submission was successful
+	if resp.StatusCode == http.StatusOK {
+		c.logger.Info("Code submitted successfully!", "message", submitResp.Message)
+		return &submitResp, nil
+	} else {
+		c.logger.Error("Submission failed", "status", resp.StatusCode, "message", submitResp.Message)
+		return nil, fmt.Errorf("submission failed with status %d: %s", resp.StatusCode, submitResp.Message)
+	}
 }

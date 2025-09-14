@@ -12,8 +12,8 @@ var rootCmd = &cobra.Command{
 	Use:   "syojctl",
 	Short: "A command-line tool for interacting with the SYOJ platform",
 	Long: `syojctl is a command-line tool that allows you to interact with the 
-SYOJ (Sing Yin Online Judge) platform, including logging in and managing
-your account credentials.`,
+SYOJ (Sing Yin Online Judge) platform, including logging in, viewing problems,
+and submitting solutions.`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
