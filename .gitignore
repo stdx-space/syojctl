@@ -1,0 +1,36 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+syojctl
+
+# Test binary, built with go test -c
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Dependency directories
+vendor/
+go/pkg/
+
+# IDEs
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.log
+
+# macOS
+.DS_Store
+
+# Configuration files that might contain sensitive information
+*.env
+.env*
+
+# Build outputs
+bin/
+dist/
